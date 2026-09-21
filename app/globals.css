@@ -37,3 +37,21 @@ body {
 .font-display {
   font-family: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
 }
+
+.page-shell {
+  background:
+    linear-gradient(135deg, rgba(239, 107, 69, 0.06) 0%, rgba(239, 107, 69, 0.06) 100%),
+    repeating-linear-gradient(
+      135deg,
+      rgba(239, 107, 69, 0.03),
+      rgba(239, 107, 69, 0.03) 1px,
+      transparent 1px,
+      transparent 10px
+    ),
+    #f4f1ee;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
