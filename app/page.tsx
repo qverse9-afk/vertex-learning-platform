@@ -1,4 +1,5 @@
 import React from 'react';
+import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs';
 
 const courses = [
   {
@@ -142,9 +143,17 @@ export default function Home() {
             >
               <BellIcon />
             </button>
-            <div className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full shadow-sm border border-black/5 bg-[#e8e4e0]">
-              <img src="https://i.pravatar.cc/150?img=47" alt="User avatar" className="h-full w-full object-cover" />
-            </div>
+            <Show when="signed-out">
+              <SignInButton>
+                <button className="text-[1.05rem] font-medium text-[#2a2a2a] transition-opacity hover:opacity-80">Log in</button>
+              </SignInButton>
+              <SignUpButton>
+                <button className="rounded-[10px] bg-[#1d1d1d] px-4 py-2.5 text-[0.95rem] font-medium text-white shadow-sm transition-transform hover:-translate-y-[1px]">Sign up</button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <UserButton />
+            </Show>
           </div>
         </header>
 
