@@ -1,6 +1,9 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { SanityLive } from "@/sanity/lib/live";
+import { VisualEditing } from "next-sanity/visual-editing";
+import { draftMode } from "next/headers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,7 +21,7 @@ export const metadata: Metadata = {
   description: "Vertex learning platform homepage",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
@@ -28,6 +31,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ClerkProvider>
           {children}
         </ClerkProvider>
+        <SanityLive />
+        {(await draftMode()).isEnabled && <VisualEditing />}
       </body>
     </html>
   );
