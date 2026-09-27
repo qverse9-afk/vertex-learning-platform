@@ -1,47 +1,11 @@
 import React from 'react';
 import { SignInButton, SignUpButton, Show, UserButton } from '@clerk/nextjs';
+import Link from 'next/link';
+import Image from 'next/image';
+import { sanityFetch } from '@/sanity/lib/live';
+import { allCoursesQuery } from '@/sanity/lib/queries';
+import { urlFor } from '@/sanity/lib/image';
 
-const courses = [
-  {
-    title: "Next.js for Production",
-    description: "Build scalable, high-performance web applications with Next.js.",
-    level: "Intermediate",
-    duration: "18h 24m",
-    modules: "12 modules",
-    icon: (
-      <div className="flex h-[86px] w-[86px] items-center justify-center rounded-[18px] bg-[#1d1d1d] text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]">
-        <svg viewBox="0 0 180 180" className="h-[46px] w-[46px]">
-          <path fill="currentColor" d="M149.508 157.697c-21.579 17.158-48.887 27.303-78.508 27.303-70.14 0-127-56.86-127-127s56.86-127 127-127 127 56.86 127 127c0 30.298-10.633 58.118-28.536 79.919l-92.441-118.845h-15.545v108.64h15.422v-82.721l82.6 109.135Z"/>
-          <path fill="currentColor" d="M129.5 49.075h14.922v108.64H129.5z"/>
-        </svg>
-      </div>
-    )
-  },
-  {
-    title: "Docker Essentials",
-    description: "Containerize applications and streamline your development workflow.",
-    level: "Beginner",
-    duration: "10h 12m",
-    modules: "8 modules",
-    icon: (
-      <div className="flex h-[86px] w-[86px] items-center justify-center">
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg" alt="Docker" className="h-[76px] w-[76px]" />
-      </div>
-    )
-  },
-  {
-    title: "TypeScript Deep Dive",
-    description: "Go beyond the basics and write safer, more expressive code.",
-    level: "Intermediate",
-    duration: "14h 36m",
-    modules: "10 modules",
-    icon: (
-      <div className="flex h-[86px] w-[86px] overflow-hidden rounded-[18px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]">
-        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg" alt="TypeScript" className="h-full w-full object-cover" />
-      </div>
-    )
-  },
-];
 
 function LogoMark() {
   return (
@@ -118,7 +82,17 @@ function StarIcon() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const { data: courses } = await sanityFetch({ query: allCoursesQuery });
+
+  const formatDuration = (seconds: number | null) => {
+    if (!seconds) return "0m";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+  };
+
   return (
     <main className="page-shell min-h-screen text-[#1b1a1a]">
       <div className="mx-auto max-w-[1180px] px-4 pb-12 pt-5 sm:px-6 lg:px-8">
@@ -131,7 +105,7 @@ export default function Home() {
           </div>
 
           <nav className="hidden items-center gap-10 text-[1.05rem] text-[#2a2a2a] md:flex">
-            <a href="#" className="transition-opacity hover:opacity-80">Courses</a>
+            <Link href="/courses" className="transition-opacity hover:opacity-80">Courses</Link>
             <a href="#" className="transition-opacity hover:opacity-80">My Learning</a>
           </nav>
 
@@ -171,13 +145,13 @@ export default function Home() {
             Vertex understands what you want to learn and finds the exact lessons across all your courses.
           </p>
 
-          <button
-            type="button"
+          <Link
+            href="/courses"
             className="mt-8 inline-flex items-center gap-3 rounded-xl bg-[#ef6b45] px-8 py-4 text-[1.08rem] font-medium text-white shadow-[0_10px_18px_rgba(239,107,69,0.24)] transition-transform hover:-translate-y-[1px]"
           >
             Explore Courses
             <ArrowIcon className="h-4 w-4" />
-          </button>
+          </Link>
         </section>
 
         <div className="mx-auto mt-10 max-w-[980px]">
@@ -197,43 +171,53 @@ export default function Home() {
             <h2 className="font-display text-[2.2rem] leading-none tracking-[-0.06em] text-[#1d1d1d] sm:text-[2.4rem]">
               All Courses
             </h2>
-            <a href="#" className="inline-flex items-center gap-2 text-[1.08rem] font-medium text-[#ef6b45]">
+            <Link href="/courses" className="inline-flex items-center gap-2 text-[1.08rem] font-medium text-[#ef6b45]">
               View all courses
               <ArrowIcon className="h-4 w-4" />
-            </a>
+            </Link>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {courses.map((course) => (
-              <article
-                key={course.title}
-                className="rounded-[20px] border border-[#d8d1cb] bg-[#f7f4f1] p-5 shadow-[0_1px_0_rgba(17,24,39,0.02)]"
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {courses.slice(0, 3).map((course: any) => (
+              <Link 
+                href={`/courses/${course.slug}`}
+                key={course._id}
+                className="group relative rounded-[20px] border border-[#d8d1cb] bg-[#f7f4f1] p-5 shadow-[0_1px_0_rgba(17,24,39,0.02)] transition-all hover:-translate-y-1 hover:shadow-md block"
               >
-                {course.icon}
+                <div className="flex h-[86px] w-[86px] overflow-hidden rounded-[18px] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)] relative bg-white">
+                  {course.coverImage ? (
+                    <Image src={urlFor(course.coverImage).width(172).height(172).url()} alt={course.title} fill className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-[#ef6b45]/10 flex items-center justify-center">
+                      <PageIcon />
+                    </div>
+                  )}
+                </div>
 
-                <h3 className="mt-5 font-display text-[1.3rem] leading-tight font-medium text-[#1d1d1d] sm:text-[1.4rem]">
+                <h3 className="mt-5 font-display text-[1.3rem] leading-tight font-medium text-[#1d1d1d] sm:text-[1.4rem] group-hover:text-[#ef6b45] transition-colors">
                   {course.title}
                 </h3>
 
-                <p className="mt-3 min-h-[72px] text-[1.02rem] leading-[1.5] text-[#4d4a47]">
-                  {course.description}
+                <p className="mt-3 min-h-[72px] text-[1.02rem] leading-[1.5] text-[#4d4a47] line-clamp-3">
+                  {course.summary}
                 </p>
 
                 <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-[#e2dbd4] pt-4 text-[0.78rem] text-[#58514d]">
                   <span className="inline-flex items-center gap-2">
                     <SignalIcon />
-                    {course.level}
+                    {course.level || 'Intermediate'}
                   </span>
                   <span className="inline-flex items-center gap-2">
                     <ClockIcon />
-                    {course.duration}
+                    {formatDuration(course.totalDuration)}
                   </span>
                   <span className="inline-flex items-center gap-2">
                     <PageIcon />
-                    {course.modules}
+                    {course.modulesCount || 0} modules
                   </span>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </section>

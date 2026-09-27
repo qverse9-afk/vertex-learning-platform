@@ -4,6 +4,8 @@
 import { defineLive } from "next-sanity/live";
 import { client } from './client'
 
+console.log("SANITY_API_READ_TOKEN in live.ts:", !!process.env.SANITY_API_READ_TOKEN);
+
 export const { sanityFetch, SanityLive } = defineLive({
   client: client.withConfig({
     apiVersion: '2026-09-23'
