@@ -1,7 +1,9 @@
+
 "use client";
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { captureEvent } from "@/lib/posthog-client";
 
 type Lesson = {
   _id: string;
@@ -16,25 +18,43 @@ type Module = {
   lessons: Lesson[] | null;
 };
 
-export default function CourseContent({ modules }: { modules: Module[] }) {
+export default function CourseContent({
+  courseId,
+  modules,
+}: {
+  courseId: string;
+  modules: Module[];
+}) {
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
 
   const toggleModule = (index: number) => {
     const next = new Set(expandedIndices);
-    if (next.has(index)) {
-      next.delete(index);
-    } else {
+    const expanded = !next.has(index);
+    if (expanded) {
       next.add(index);
+    } else {
+      next.delete(index);
     }
     setExpandedIndices(next);
+    captureEvent("course_module_toggled", {
+      course_id: courseId,
+      expanded,
+      module_index: index,
+    });
   };
 
   const toggleAll = () => {
-    if (expandedIndices.size === modules.length) {
-      setExpandedIndices(new Set());
-    } else {
+    const expanded = expandedIndices.size !== modules.length;
+    if (expanded) {
       setExpandedIndices(new Set(modules.map((_, i) => i)));
+    } else {
+      setExpandedIndices(new Set());
     }
+    captureEvent("course_modules_toggled", {
+      course_id: courseId,
+      expanded,
+      module_count: modules.length,
+    });
   };
 
   const formatDuration = (seconds: number | null) => {

@@ -1,4 +1,5 @@
 import { ClerkProvider } from "@clerk/nextjs";
+import PostHogIdentity from "@/components/PostHogIdentity";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { SanityLive } from "@/sanity/lib/live";
@@ -29,6 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <body className="min-h-full flex flex-col">
         <ClerkProvider>
+          <PostHogIdentity />
           {children}
         </ClerkProvider>
         <SanityLive />

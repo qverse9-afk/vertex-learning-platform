@@ -83,7 +83,9 @@ function StarIcon() {
 }
 
 export default async function Home() {
-  const { data: courses } = await sanityFetch({ query: allCoursesQuery });
+  const { data } = await sanityFetch({ query: allCoursesQuery });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const courses = data as any[];
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return "0m";

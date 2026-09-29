@@ -1,12 +1,16 @@
+import { SeverityNumber } from "@opentelemetry/api-logs";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Bookmark, Clock, BookOpen, Users, BarChart, Layers, Database, Gauge, Cloud, LayoutGrid } from "lucide-react";
+import { Clock, BookOpen, Users, BarChart, Layers, Database, Gauge, Cloud, LayoutGrid } from "lucide-react";
 import { sanityFetch } from "@/sanity/lib/live";
 import { courseBySlugQuery } from "@/sanity/lib/queries";
 import { urlFor } from "@/sanity/lib/image";
+import CourseActions from "@/components/course/CourseActions";
 import CourseContent from "@/components/course/CourseContent";
 import CourseProgress from "@/components/course/CourseProgress";
+import { loggerProvider, posthogLogger } from "@/instrumentation";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -46,6 +50,21 @@ export default async function CoursePage({ params }: PageProps) {
 
   const modules = course.modules || [];
   const moduleCount = modules.length;
+
+  const activeLoggerProvider = loggerProvider;
+  if (posthogLogger && activeLoggerProvider) {
+    posthogLogger.emit({
+      body: "Course content loaded",
+      severityNumber: SeverityNumber.INFO,
+      severityText: "INFO",
+      attributes: {
+        event: "course_content_loaded",
+        course_id: String(course._id),
+        module_count: moduleCount,
+      },
+    });
+    after(() => activeLoggerProvider.forceFlush());
+  }
   
   // Calculate total duration in seconds
   let totalDurationSeconds = 0;
@@ -122,14 +141,7 @@ export default async function CoursePage({ params }: PageProps) {
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <button className="bg-[#f26a3c] hover:bg-[#d95d32] text-white px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 shadow-sm">
-                Continue Learning <ArrowRight size={18} />
-              </button>
-              <button className="bg-white border border-[var(--line)] hover:bg-[var(--panel)] px-6 py-2.5 rounded-lg font-medium transition-colors flex items-center gap-2 text-[var(--foreground)]">
-                <Bookmark size={18} /> Bookmark
-              </button>
-            </div>
+            <CourseActions courseId={course._id} />
           </div>
         </div>
 
@@ -172,12 +184,12 @@ export default async function CoursePage({ params }: PageProps) {
           </div>
           
           <div className="bg-white border border-[var(--line)] rounded-2xl p-6 md:p-8 shadow-sm">
-            <CourseContent modules={modules} />
+            <CourseContent courseId={course._id} modules={modules} />
           </div>
         </div>
       </div>
       
-      <CourseProgress percentage={35} />
+      <CourseProgress courseId={course._id} percentage={35} />
     </main>
   );
 }
