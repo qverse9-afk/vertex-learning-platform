@@ -157,7 +157,7 @@ export default async function Home() {
         </section>
 
         <div className="mx-auto mt-10 max-w-[980px]">
-          <label className="flex items-center justify-between gap-3 rounded-[18px] border border-[#d9d1ca] bg-[#f8f5f2] px-5 py-4 shadow-[0_1px_0_rgba(17,24,39,0.02)] sm:px-6">
+          <Link href="/search" className="flex items-center justify-between gap-3 rounded-[18px] border border-[#d9d1ca] bg-[#f8f5f2] px-5 py-4 shadow-[0_1px_0_rgba(17,24,39,0.02)] sm:px-6 hover:border-[#ef6b45] transition-colors cursor-text">
             <span className="flex items-center gap-4 text-[#4b4744]">
               <SearchIcon />
               <span className="text-[1.1rem] sm:text-[1.3rem]">Ask anything about your learning...</span>
@@ -165,7 +165,7 @@ export default async function Home() {
             <span className="rounded-md border border-[#d4cdc6] bg-[#f1ece7] px-2 py-1 text-[0.77rem] font-medium text-[#59524d]">
               ⌘K
             </span>
-          </label>
+          </Link>
         </div>
 
         <section className="mt-16">

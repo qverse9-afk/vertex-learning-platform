@@ -57,3 +57,34 @@ export const allCoursesQuery = defineQuery(`
     "totalDuration": math::sum(modules[].lessons[]->duration)
   }
 `);
+
+export const lessonBySlugQuery = defineQuery(`
+  *[_type == "lesson" && slug.current == $lessonSlug][0] {
+    _id,
+    title,
+    "slug": slug.current,
+    videoUrl,
+    poster,
+    duration,
+    freePreview,
+    studentCount,
+    notes,
+    keyPoints,
+    proTip,
+    resources,
+    "course": *[_type == "course" && references(^._id)][0] {
+      _id,
+      title,
+      "slug": slug.current,
+      modules[] {
+        title,
+        lessons[]-> {
+          _id,
+          title,
+          "slug": slug.current,
+          duration
+        }
+      }
+    }
+  }
+`);
