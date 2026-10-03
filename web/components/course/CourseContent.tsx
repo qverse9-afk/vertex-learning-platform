@@ -99,16 +99,34 @@ export default function CourseContent({
             
             {isExpanded && mod.lessons && mod.lessons.length > 0 && (
               <div className="mt-4 ml-12 flex flex-col gap-3">
-                {mod.lessons.map((lesson, j) => (
-                  <Link 
-                    href={`/courses/${courseSlug}/lessons/${lesson.slug}`} 
-                    key={lesson._id || j} 
-                    className="flex justify-between items-center bg-[var(--panel)] p-3 rounded-lg border border-[var(--line)] hover:border-[var(--foreground)] transition-colors"
-                  >
-                    <span className="text-sm font-medium text-[var(--foreground)]">{lesson.title}</span>
-                    <span className="text-xs text-[var(--muted)]">{formatDuration(lesson.duration)}</span>
-                  </Link>
-                ))}
+                {mod.lessons.map((lesson, j) => {
+                  const content = (
+                    <>
+                      <span className="text-sm font-medium text-[var(--foreground)]">{lesson.title}</span>
+                      <span className="text-xs text-[var(--muted)]">{formatDuration(lesson.duration)}</span>
+                    </>
+                  );
+
+                  const commonClass = "flex justify-between items-center bg-[var(--panel)] p-3 rounded-lg border border-[var(--line)]";
+                  
+                  if (!lesson.slug) {
+                    return (
+                      <div key={lesson._id || j} className={`${commonClass} opacity-70`}>
+                        {content}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Link 
+                      href={`/courses/${courseSlug}/lessons/${lesson.slug}`} 
+                      key={lesson._id || j} 
+                      className={`${commonClass} hover:border-[var(--foreground)] transition-colors`}
+                    >
+                      {content}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>

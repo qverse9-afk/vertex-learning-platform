@@ -59,7 +59,7 @@ export const allCoursesQuery = defineQuery(`
 `);
 
 export const lessonBySlugQuery = defineQuery(`
-  *[_type == "lesson" && slug.current == $lessonSlug][0] {
+  *[_type == "lesson" && slug.current == $lessonSlug && count(*[_type == "course" && slug.current == $courseSlug && references(^._id)]) > 0][0] {
     _id,
     title,
     "slug": slug.current,
@@ -72,7 +72,7 @@ export const lessonBySlugQuery = defineQuery(`
     keyPoints,
     proTip,
     resources,
-    "course": *[_type == "course" && references(^._id)][0] {
+    "course": *[_type == "course" && slug.current == $courseSlug && references(^._id)][0] {
       _id,
       title,
       "slug": slug.current,

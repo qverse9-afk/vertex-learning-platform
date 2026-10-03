@@ -21,7 +21,10 @@ export default async function LessonPage({ params }: PageProps) {
   
   const { data } = await sanityFetch({
     query: lessonBySlugQuery,
-    params: { lessonSlug: resolvedParams.lessonSlug },
+    params: { 
+      lessonSlug: resolvedParams.lessonSlug,
+      courseSlug: resolvedParams.slug
+    },
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -78,7 +81,7 @@ export default async function LessonPage({ params }: PageProps) {
               <h1 className="text-2xl md:text-3xl font-display font-medium text-[var(--foreground)] mb-4">
                 {lesson.title}
               </h1>
-              <VideoPlayer url={lesson.videoUrl} />
+              <VideoPlayer url={lesson.videoUrl} title={lesson.title} />
             </div>
 
             {/* Content Tabs / Sections */}

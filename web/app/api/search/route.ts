@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateText } from 'ai';
+import { generateText, isStepCount } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { createMCPClient } from '@ai-sdk/mcp';
 import { auth } from '@clerk/nextjs/server';
@@ -23,15 +23,16 @@ async function fetchInitialContext(mcpUrl: string, token: string) {
 export async function POST(req: Request) {
   try {
     // Require authentication
-    const { userId } = auth();
+    const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { query } = await req.json();
+    let { query } = await req.json();
 
     // Bound input length and type
-    if (!query || typeof query !== 'string' || query.length > 200) {
+    query = typeof query === 'string' ? query.trim() : "";
+    if (!query || query.length > 200) {
       return NextResponse.json({ error: "Invalid query" }, { status: 400 });
     }
 
@@ -55,14 +56,12 @@ export async function POST(req: Request) {
       fetchInitialContext(mcpUrl, sanityToken)
     ]);
 
-    const allMcpTools = await mcpClient.tools();
-    // Restrict tools to ONLY groq_query to prevent unauthorized mutation or data access
-    const mcpTools: Record<string, unknown> = {};
-    if (allMcpTools.groq_query) {
-      mcpTools.groq_query = allMcpTools.groq_query;
-    }
+    try {
+      const allMcpTools = await mcpClient.tools();
+      // Restrict tools to ONLY groq_query to prevent unauthorized mutation or data access
+      const mcpTools = allMcpTools.groq_query ? { groq_query: allMcpTools.groq_query } : {};
 
-    const systemPrompt = `
+      const systemPrompt = `
 You are an intelligent search agent for a learning platform called Vertex. 
 Your goal is to find relevant lessons and video moments for the user's query.
 
@@ -93,30 +92,36 @@ Each result object should have the following shape:
 Return ONLY valid JSON (without markdown formatting blocks if possible, or strictly just the JSON array).
 `;
 
-    const result = await generateText({
-      model: openai('gpt-4o'),
-      system: systemPrompt,
-      prompt: `Search query: ${query}`,
-      tools: mcpTools,
-      maxSteps: 5,
-    });
+      const result = await generateText({
+        model: openai('gpt-4o'),
+        system: systemPrompt,
+        prompt: `Search query: ${query}`,
+        tools: mcpTools,
+        stopWhen: isStepCount(5),
+      });
 
-    let results = [];
-    try {
-      // LLM might wrap in ```json ... ```
-      let jsonText = result.text.trim();
-      if (jsonText.startsWith('```json')) {
-        jsonText = jsonText.substring(7, jsonText.length - 3).trim();
-      } else if (jsonText.startsWith('```')) {
-        jsonText = jsonText.substring(3, jsonText.length - 3).trim();
+      let results = [];
+      try {
+        // LLM might wrap in ```json ... ```
+        let jsonText = result.text.trim();
+        if (jsonText.startsWith('```json')) {
+          jsonText = jsonText.substring(7, jsonText.length - 3).trim();
+        } else if (jsonText.startsWith('```')) {
+          jsonText = jsonText.substring(3, jsonText.length - 3).trim();
+        }
+        results = JSON.parse(jsonText);
+        if (!Array.isArray(results) || !results.every(r => r && r.courseSlug && r.lessonSlug)) {
+          throw new Error("Invalid output format");
+        }
+      } catch (err) {
+        console.error("Failed to parse LLM JSON output:", result.text, err);
+        return NextResponse.json({ error: "Failed to parse search results" }, { status: 500 });
       }
-      results = JSON.parse(jsonText);
-    } catch (err) {
-      console.error("Failed to parse LLM JSON output:", result.text, err);
-      results = [];
-    }
 
-    return NextResponse.json({ results });
+      return NextResponse.json({ results });
+    } finally {
+      await mcpClient.close();
+    }
 
   } catch (error: unknown) {
     // Sanitize error response, do not leak internal error messages

@@ -10,29 +10,40 @@ export default function SearchPage() {
   const [results, setResults] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    const currentQuery = query.trim();
+    if (!currentQuery) return;
 
     setIsLoading(true);
     setError('');
+    setResults([]);
+    setHasSearched(false);
     
     try {
       const res = await fetch('/api/search', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
+        body: JSON.stringify({ query: currentQuery }),
       });
       
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to search');
       
-      setResults(data.results || []);
+      // Only set results if the query hasn't changed since request started
+      setResults(currentQuery === query.trim() ? (data.results || []) : results);
+      if (currentQuery === query.trim()) setHasSearched(true);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      if (currentQuery === query.trim()) {
+        setError(err instanceof Error ? err.message : "Unknown error");
+        setHasSearched(true);
+      }
     } finally {
-      setIsLoading(false);
+      if (currentQuery === query.trim()) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -71,6 +82,14 @@ export default function SearchPage() {
         {error && (
           <div className="mb-8 rounded-xl bg-red-50 p-4 text-red-600">
             {error}
+          </div>
+        )}
+
+        {hasSearched && !error && results.length === 0 && (
+          <div className="mb-8 rounded-[20px] border border-[#d8d1cb] bg-[#f7f4f1] p-8 text-center shadow-[0_1px_0_rgba(17,24,39,0.02)]">
+            <h3 className="text-xl font-medium text-[#1d1d1d] mb-2">No results found</h3>
+            <p className="text-[#58514d]">We couldn&apos;t find anything matching your search. Try different keywords or check out the full catalog.</p>
+            <Link href="/courses" className="inline-block mt-4 text-[#ef6b45] hover:underline font-medium">Browse Catalog &rarr;</Link>
           </div>
         )}
 

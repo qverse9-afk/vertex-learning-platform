@@ -5,9 +5,10 @@ import { useMemo } from "react";
 
 interface VideoPlayerProps {
   url: string;
+  title?: string;
 }
 
-export default function VideoPlayer({ url }: VideoPlayerProps) {
+export default function VideoPlayer({ url, title }: VideoPlayerProps) {
   const searchParams = useSearchParams();
   const startParam = searchParams.get("start");
   
@@ -34,7 +35,7 @@ export default function VideoPlayer({ url }: VideoPlayerProps) {
     
     // YouTube
     if (url.includes("youtube.com") || url.includes("youtu.be")) {
-      const videoIdMatch = url.match(/(?:v=|youtu\.be\/|embed\/)([^&?]+)/);
+      const videoIdMatch = url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([^&?]+)/);
       if (videoIdMatch && videoIdMatch[1]) {
         finalUrl = `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=0`;
         if (startSeconds !== null) {
@@ -75,6 +76,7 @@ export default function VideoPlayer({ url }: VideoPlayerProps) {
     <div className="w-full aspect-video rounded-xl overflow-hidden shadow-sm border border-[var(--line)] bg-black">
       <iframe
         src={embedUrl}
+        title={title || "Video player"}
         className="w-full h-full"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen

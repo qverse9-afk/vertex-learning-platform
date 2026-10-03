@@ -78,6 +78,26 @@ export default function LessonSidebar({
                 <div className="mt-3 flex flex-col gap-1">
                   {mod.lessons.map((lesson, j) => {
                     const isActive = lesson.slug === activeLessonSlug;
+                    const content = (
+                      <>
+                        <PlayCircle size={16} className={`mt-0.5 flex-shrink-0 ${isActive ? "text-[#f26a3c]" : ""}`} />
+                        <div className="flex-grow">
+                          <span className={`text-sm block ${isActive ? "font-medium" : ""}`}>{lesson.title}</span>
+                        </div>
+                        <span className="text-xs flex-shrink-0 mt-0.5 opacity-70">
+                          {formatDuration(lesson.duration)}
+                        </span>
+                      </>
+                    );
+
+                    if (!lesson.slug) {
+                      return (
+                        <div key={lesson._id || j} className="flex items-start gap-3 p-2 rounded-lg transition-colors text-[var(--muted)] opacity-70">
+                          {content}
+                        </div>
+                      );
+                    }
+
                     return (
                       <Link 
                         href={`/courses/${courseSlug}/lessons/${lesson.slug}`} 
@@ -88,13 +108,7 @@ export default function LessonSidebar({
                             : "text-[var(--muted)] hover:bg-[var(--line)] hover:text-[var(--foreground)]"
                         }`}
                       >
-                        <PlayCircle size={16} className={`mt-0.5 flex-shrink-0 ${isActive ? "text-[#f26a3c]" : ""}`} />
-                        <div className="flex-grow">
-                          <span className={`text-sm block ${isActive ? "font-medium" : ""}`}>{lesson.title}</span>
-                        </div>
-                        <span className="text-xs flex-shrink-0 mt-0.5 opacity-70">
-                          {formatDuration(lesson.duration)}
-                        </span>
+                        {content}
                       </Link>
                     );
                   })}

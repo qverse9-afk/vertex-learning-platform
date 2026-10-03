@@ -17,7 +17,7 @@ Implement the intelligent search feature connecting the Sanity Context MCP serve
 
 ## Decisions & Assumptions
 1. **Dependencies**: We will install the Vercel AI SDK packages (`@ai-sdk/anthropic`, `@ai-sdk/mcp`, `@ai-sdk/react`, `ai`) in the `web` workspace.
-2. **Search API**: We will create `app/api/search/route.ts`. It will connect to the Sanity Context MCP server using HTTP transport and the `SANITY_API_TOKEN`. It will fetch the initial context and inject it into the system prompt. It will use the `claude-3-5-sonnet-latest` (or user's preferred) model via the Anthropic provider.
+2. **Search API**: We will create `app/api/search/route.ts`. It will connect to the Sanity Context MCP server using HTTP transport and the `SANITY_API_READ_TOKEN`. It will fetch the initial context and inject it into the system prompt. It will use the `gpt-4o` model via the OpenAI provider.
 3. **Structured Output**: Since the UI must be a results page with cards (not a chatbox), we will instruct the LLM in the system prompt to output ONLY a JSON array of results after calling the `groq_query` tool. Or, even better, we will use `streamObject` or `generateObject` with a strict Zod schema for the final result (containing `type: 'lesson' | 'video'`, `title`, `description`, `course`, `moduleLabel`, `timestamp`, `slug`, etc.). 
 4. **GROQ Strategy**: The system prompt will instruct the LLM to write GROQ queries that match both lesson topics (title, notes) and video moments (chapters, transcripts) and return a unified ranked list. We will explicitly instruct it *never* to return full transcript arrays, but to filter them in GROQ (e.g., `chunks[text match "*keyword*"]`).
 5. **Context Document**: We will assume a Context document with slug `default` exists or will be created (or use the base MCP URL without a slug). We will use environment variables for `SANITY_CONTEXT_MCP_URL`.
@@ -38,7 +38,7 @@ Implement the intelligent search feature connecting the Sanity Context MCP serve
 - The search must handle both lesson-level and video-moment-level results.
 
 ## Security Considerations
-- The `SANITY_API_TOKEN` must remain on the server and never be exposed to the client.
+- The `SANITY_API_READ_TOKEN` must remain on the server and never be exposed to the client.
 - We will fetch the schema context server-side.
 
 ## Acceptance Criteria
@@ -48,7 +48,7 @@ Implement the intelligent search feature connecting the Sanity Context MCP serve
 
 ## Test Steps
 1. Install dependencies.
-2. Add necessary `.env.local` variables (`SANITY_CONTEXT_MCP_URL`, `SANITY_API_TOKEN`, `ANTHROPIC_API_KEY`).
+2. Add necessary `.env.local` variables (`SANITY_CONTEXT_MCP_URL`, `SANITY_API_READ_TOKEN`, `OPENAI_API_KEY`).
 3. Start the dev server.
 4. Navigate to `/search` and submit a query (e.g., "pandas").
 5. Verify that result cards appear and link correctly to the lesson pages.
