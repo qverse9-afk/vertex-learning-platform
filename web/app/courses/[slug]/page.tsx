@@ -184,7 +184,7 @@ export default async function CoursePage({ params }: PageProps) {
           </div>
           
           <div className="bg-white border border-[var(--line)] rounded-2xl p-6 md:p-8 shadow-sm">
-            <CourseContent courseId={course._id} modules={modules} />
+            <CourseContent courseId={course._id} courseSlug={course.slug} modules={modules} />
           </div>
         </div>
       </div>

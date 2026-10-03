@@ -2,6 +2,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { captureEvent } from "@/lib/posthog-client";
 
@@ -20,9 +21,11 @@ type Module = {
 
 export default function CourseContent({
   courseId,
+  courseSlug,
   modules,
 }: {
   courseId: string;
+  courseSlug: string;
   modules: Module[];
 }) {
   const [expandedIndices, setExpandedIndices] = useState<Set<number>>(new Set());
@@ -96,12 +99,34 @@ export default function CourseContent({
             
             {isExpanded && mod.lessons && mod.lessons.length > 0 && (
               <div className="mt-4 ml-12 flex flex-col gap-3">
-                {mod.lessons.map((lesson, j) => (
-                  <div key={lesson._id || j} className="flex justify-between items-center bg-[var(--panel)] p-3 rounded-lg border border-[var(--line)]">
-                    <span className="text-sm font-medium text-[var(--foreground)]">{lesson.title}</span>
-                    <span className="text-xs text-[var(--muted)]">{formatDuration(lesson.duration)}</span>
-                  </div>
-                ))}
+                {mod.lessons.map((lesson, j) => {
+                  const content = (
+                    <>
+                      <span className="text-sm font-medium text-[var(--foreground)]">{lesson.title}</span>
+                      <span className="text-xs text-[var(--muted)]">{formatDuration(lesson.duration)}</span>
+                    </>
+                  );
+
+                  const commonClass = "flex justify-between items-center bg-[var(--panel)] p-3 rounded-lg border border-[var(--line)]";
+                  
+                  if (!lesson.slug) {
+                    return (
+                      <div key={lesson._id || j} className={`${commonClass} opacity-70`}>
+                        {content}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <Link 
+                      href={`/courses/${courseSlug}/lessons/${lesson.slug}`} 
+                      key={lesson._id || j} 
+                      className={`${commonClass} hover:border-[var(--foreground)] transition-colors`}
+                    >
+                      {content}
+                    </Link>
+                  );
+                })}
               </div>
             )}
           </div>
