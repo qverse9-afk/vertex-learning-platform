@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { generateText } from 'ai';
 import { openai } from '@ai-sdk/openai';
 import { createMCPClient } from '@ai-sdk/mcp';
+import { auth } from '@clerk/nextjs/server';
 
 async function fetchInitialContext(mcpUrl: string, token: string) {
   try {
@@ -21,10 +22,17 @@ async function fetchInitialContext(mcpUrl: string, token: string) {
 
 export async function POST(req: Request) {
   try {
+    // Require authentication
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { query } = await req.json();
 
-    if (!query) {
-      return NextResponse.json({ error: "Query is required" }, { status: 400 });
+    // Bound input length and type
+    if (!query || typeof query !== 'string' || query.length > 200) {
+      return NextResponse.json({ error: "Invalid query" }, { status: 400 });
     }
 
     const mcpUrl = process.env.SANITY_CONTEXT_MCP_URL;
@@ -48,8 +56,11 @@ export async function POST(req: Request) {
     ]);
 
     const allMcpTools = await mcpClient.tools();
-    const mcpTools = { ...allMcpTools };
-    delete mcpTools.initial_context;
+    // Restrict tools to ONLY groq_query to prevent unauthorized mutation or data access
+    const mcpTools: Record<string, unknown> = {};
+    if (allMcpTools.groq_query) {
+      mcpTools.groq_query = allMcpTools.groq_query;
+    }
 
     const systemPrompt = `
 You are an intelligent search agent for a learning platform called Vertex. 
@@ -108,7 +119,8 @@ Return ONLY valid JSON (without markdown formatting blocks if possible, or stric
     return NextResponse.json({ results });
 
   } catch (error: unknown) {
+    // Sanitize error response, do not leak internal error messages
     console.error("Search API Error:", error);
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Unknown error" }, { status: 500 });
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

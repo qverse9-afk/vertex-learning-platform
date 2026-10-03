@@ -9,10 +9,26 @@ interface VideoPlayerProps {
 
 export default function VideoPlayer({ url }: VideoPlayerProps) {
   const searchParams = useSearchParams();
-  const startSeconds = searchParams.get("start");
+  const startParam = searchParams.get("start");
+  
+  const startSeconds = useMemo(() => {
+    if (!startParam) return null;
+    const parsed = parseInt(startParam, 10);
+    return isNaN(parsed) || parsed < 0 ? null : parsed;
+  }, [startParam]);
 
   const embedUrl = useMemo(() => {
     if (!url) return "";
+    
+    // Validate scheme
+    try {
+      const parsedUrl = new URL(url);
+      if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
+        return "";
+      }
+    } catch {
+      return "";
+    }
 
     let finalUrl = url;
     
@@ -21,7 +37,7 @@ export default function VideoPlayer({ url }: VideoPlayerProps) {
       const videoIdMatch = url.match(/(?:v=|youtu\.be\/|embed\/)([^&?]+)/);
       if (videoIdMatch && videoIdMatch[1]) {
         finalUrl = `https://www.youtube.com/embed/${videoIdMatch[1]}?autoplay=0`;
-        if (startSeconds) {
+        if (startSeconds !== null) {
           finalUrl += `&start=${startSeconds}`;
         }
       }
@@ -31,7 +47,7 @@ export default function VideoPlayer({ url }: VideoPlayerProps) {
       const videoIdMatch = url.match(/vimeo\.com\/(?:video\/)?([0-9]+)/);
       if (videoIdMatch && videoIdMatch[1]) {
         finalUrl = `https://player.vimeo.com/video/${videoIdMatch[1]}`;
-        if (startSeconds) {
+        if (startSeconds !== null) {
           finalUrl += `#t=${startSeconds}s`;
         }
       }
@@ -39,7 +55,7 @@ export default function VideoPlayer({ url }: VideoPlayerProps) {
     // Bunny (assuming format like iframe.mediadelivery.net)
     else if (url.includes("mediadelivery.net")) {
       finalUrl = url;
-      if (startSeconds) {
+      if (startSeconds !== null) {
         finalUrl += (url.includes("?") ? "&" : "?") + `t=${startSeconds}`;
       }
     }

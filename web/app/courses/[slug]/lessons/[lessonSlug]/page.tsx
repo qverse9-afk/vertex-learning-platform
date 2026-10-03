@@ -138,29 +138,41 @@ export default async function LessonPage({ params }: PageProps) {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {lesson.resources.map((resource: any, idx: number) => (
-                        <a 
-                          key={idx}
-                          href={resource.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block p-4 rounded-xl border border-[var(--line)] hover:border-[#f26a3c] transition-colors group bg-[var(--panel)]"
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className="bg-white p-2 rounded-lg border border-[var(--line)] group-hover:border-[#f7d8c3] shadow-sm">
-                              <LinkIcon size={18} className="text-[var(--muted)] group-hover:text-[#f26a3c] transition-colors" />
+                      {lesson.resources.map((resource: any, idx: number) => {
+                        let safeUrl = "#";
+                        try {
+                          const parsed = new URL(resource.url);
+                          if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+                            safeUrl = resource.url;
+                          }
+                        } catch {
+                          // Invalid URL
+                        }
+                        
+                        return (
+                          <a 
+                            key={idx}
+                            href={safeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block p-4 rounded-xl border border-[var(--line)] hover:border-[#f26a3c] transition-colors group bg-[var(--panel)]"
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="bg-white p-2 rounded-lg border border-[var(--line)] group-hover:border-[#f7d8c3] shadow-sm">
+                                <LinkIcon size={18} className="text-[var(--muted)] group-hover:text-[#f26a3c] transition-colors" />
+                              </div>
+                              <div>
+                                <h3 className="font-medium text-[var(--foreground)] group-hover:text-[#f26a3c] transition-colors mb-1">
+                                  {resource.title}
+                                </h3>
+                                <p className="text-sm text-[var(--muted)] line-clamp-2">
+                                  {resource.description}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <h3 className="font-medium text-[var(--foreground)] group-hover:text-[#f26a3c] transition-colors mb-1">
-                                {resource.title}
-                              </h3>
-                              <p className="text-sm text-[var(--muted)] line-clamp-2">
-                                {resource.description}
-                              </p>
-                            </div>
-                          </div>
-                        </a>
-                      ))}
+                          </a>
+                        );
+                      })}
                     </div>
                   </section>
                 )}
