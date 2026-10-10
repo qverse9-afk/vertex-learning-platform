@@ -16,6 +16,14 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+To open the dev server from another device on your network (for example `http://192.168.1.15:3000`), set `ALLOWED_DEV_ORIGINS` in `web/.env.local` to a comma-separated list of hostnames, then restart the dev server:
+
+```bash
+ALLOWED_DEV_ORIGINS=192.168.1.15
+```
+
+If you do not set it, Next.js blocks the dev websocket for that host. The page does not hydrate, and it reloads about every minute.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
